@@ -36,6 +36,7 @@ import org.asl19.paskoocheh.pojo.Version;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -105,7 +106,8 @@ public class SearchFragment extends InstallFragment implements SearchContract.Se
         unbinder = ButterKnife.bind(this, view);
 
         if (savedInstanceState != null) {
-            search = savedInstanceState.getString(SEARCH);
+            String savedSearch = savedInstanceState.getString(SEARCH);
+            search = savedSearch == null ? "" : savedSearch;
         }
 
         toolsLayout.setVisibility(View.GONE);
@@ -175,23 +177,28 @@ public class SearchFragment extends InstallFragment implements SearchContract.Se
             @Override
             public boolean onQueryTextSubmit(String query) {
                 headerText.setText(String.format("نتیجه جستجو برای \"%s\"", query));
-                search = query;
-                query = query.toLowerCase();
+                search = query == null ? "" : query;
+                String normalizedQuery = query == null ? "" : query.toLowerCase(Locale.ROOT);
 
                 HashSet<String> categoryIds = new HashSet<>();
                 for (Name categoryName: categoryNames) {
-                    if (categoryName.getFa().toLowerCase().contains(query) || categoryName.getEn().toLowerCase().contains(query)) {
+                    String faName = categoryName.getFa() == null ? "" : categoryName.getFa().toLowerCase(Locale.ROOT);
+                    String enName = categoryName.getEn() == null ? "" : categoryName.getEn().toLowerCase(Locale.ROOT);
+                    if (faName.contains(normalizedQuery) || enName.contains(normalizedQuery)) {
                         categoryIds.add(String.valueOf(categoryName.getCategoryId()));
                     }
                 }
 
                 HashSet<Integer> hashSet = new HashSet<>();
                 for (LocalizedInfo localizedInfo: localizedInfos) {
-                    if (localizedInfo.getName().toLowerCase().contains(query) || localizedInfo.description.toLowerCase().contains(query) || localizedInfo.company.toLowerCase().contains(query)) {
+                    String localizedName = localizedInfo.getName() == null ? "" : localizedInfo.getName().toLowerCase(Locale.ROOT);
+                    String localizedDescription = localizedInfo.description == null ? "" : localizedInfo.description.toLowerCase(Locale.ROOT);
+                    String localizedCompany = localizedInfo.company == null ? "" : localizedInfo.company.toLowerCase(Locale.ROOT);
+                    if (localizedName.contains(normalizedQuery) || localizedDescription.contains(normalizedQuery) || localizedCompany.contains(normalizedQuery)) {
                         hashSet.add(localizedInfo.getToolId());
                     }
                 }
-                presenter.getSearchTools(hashSet, categoryIds, query);
+                presenter.getSearchTools(hashSet, categoryIds, normalizedQuery);
 
                 swipeRefreshLayout.setRefreshing(true);
                 swipeRefreshLayout.setEnabled(true);
@@ -317,18 +324,22 @@ public class SearchFragment extends InstallFragment implements SearchContract.Se
         for (final Name categoryName: categoryNames) {
             final Button text = (Button) inflate(getContext(), R.layout.button_search_category, null);
             text.setAllCaps(false);
-            text.setText(categoryName.getFa());
-            if (categoryName.getFa().isEmpty()) {
-                text.setText(categoryName.getEn());
+            String faName = categoryName.getFa() == null ? "" : categoryName.getFa();
+            String enName = categoryName.getEn() == null ? "" : categoryName.getEn();
+            text.setText(faName);
+            if (faName.isEmpty()) {
+                text.setText(enName);
             }
 
             text.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (categoryName.getFa().isEmpty()) {
-                        searchView.setQuery(categoryName.getEn(), true);
+                    String categoryFaName = categoryName.getFa() == null ? "" : categoryName.getFa();
+                    String categoryEnName = categoryName.getEn() == null ? "" : categoryName.getEn();
+                    if (categoryFaName.isEmpty()) {
+                        searchView.setQuery(categoryEnName, true);
                     } else {
-                        searchView.setQuery(categoryName.getFa(), true);
+                        searchView.setQuery(categoryFaName, true);
                     }
                 }
             });

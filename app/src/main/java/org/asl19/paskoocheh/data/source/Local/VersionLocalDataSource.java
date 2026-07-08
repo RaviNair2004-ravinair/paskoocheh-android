@@ -12,6 +12,7 @@ import org.asl19.paskoocheh.utils.AppExecutors;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 
 import static com.fernandocejas.arrow.checks.Preconditions.checkNotNull;
 
@@ -125,12 +126,16 @@ public class VersionLocalDataSource implements VersionDataSource {
                         } else {
                             List<Version> searchVersions = new ArrayList<>();
                             for (Version version: versions) {
-                                if (setOfTools.contains(version.getToolId()) || version.getAppName().toLowerCase().contains(query)) {
+                                String appName = version.getAppName() == null ? "" : version.getAppName().toLowerCase(Locale.ROOT);
+                                if (setOfTools.contains(version.getToolId()) || appName.contains(query)) {
                                     searchVersions.add(version);
                                 } else {
-                                    for (String category: categories) {
-                                        if (version.getCategories().contains(category)) {
-                                            searchVersions.add(version);
+                                    List<String> versionCategories = version.getCategories();
+                                    if (versionCategories != null) {
+                                        for (String category: categories) {
+                                            if (versionCategories.contains(category)) {
+                                                searchVersions.add(version);
+                                            }
                                         }
                                     }
                                 }
