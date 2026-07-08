@@ -118,6 +118,9 @@ public class VersionLocalDataSource implements VersionDataSource {
             @Override
             public void run() {
                 final List<Version> versions = versionDao.getAllAndroidVersions();
+                final HashSet<Integer> safeToolIds = setOfTools == null ? new HashSet<Integer>() : setOfTools;
+                final HashSet<String> safeCategories = categories == null ? new HashSet<String>() : categories;
+                final String normalizedQuery = query == null ? "" : query;
                 appExecutors.mainThread().execute(new Runnable() {
                     @Override
                     public void run() {
@@ -127,14 +130,15 @@ public class VersionLocalDataSource implements VersionDataSource {
                             List<Version> searchVersions = new ArrayList<>();
                             for (Version version: versions) {
                                 String appName = version.getAppName() == null ? "" : version.getAppName().toLowerCase(Locale.ROOT);
-                                if (setOfTools.contains(version.getToolId()) || appName.contains(query)) {
+                                if (safeToolIds.contains(version.getToolId()) || appName.contains(normalizedQuery)) {
                                     searchVersions.add(version);
                                 } else {
                                     List<String> versionCategories = version.getCategories();
                                     if (versionCategories != null) {
-                                        for (String category: categories) {
+                                        for (String category: safeCategories) {
                                             if (versionCategories.contains(category)) {
                                                 searchVersions.add(version);
+                                                break;
                                             }
                                         }
                                     }
