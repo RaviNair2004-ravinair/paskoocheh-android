@@ -397,7 +397,9 @@ public abstract class InstallFragment extends Fragment {
                     if (device != null && device.deviceName != null) {
                         String deviceName = device.deviceName.toLowerCase(Locale.ROOT);
                         if (deviceName.equals(buildDevice) || deviceName.equals(buildHardware)) {
-                            versionCode = device.versionCode;
+                            if (device.versionCode != null) {
+                                versionCode = device.versionCode;
+                            }
                             break;
                         }
                     }
@@ -406,7 +408,7 @@ public abstract class InstallFragment extends Fragment {
 
             if (version.appDownloadInfoForVersionCodes != null) {
                 for (AppDownloadInfoForVersionCode appDownloadInfoForVersionCode : version.appDownloadInfoForVersionCodes) {
-                    if (versionCode.equals(appDownloadInfoForVersionCode.versionCode)) {
+                    if (appDownloadInfoForVersionCode != null && versionCode.equals(appDownloadInfoForVersionCode.versionCode)) {
                         version.setCurrentAppDownloadInfo(appDownloadInfoForVersionCode);
                         isInstallableInThisDevice = true;
                         break;
