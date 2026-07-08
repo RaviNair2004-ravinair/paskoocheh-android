@@ -98,7 +98,11 @@ public final class S3Clients {
             Thread thread = startThread();
 
             if (start + timeout_millis > now) {
-                try { thread.join(start + timeout_millis - now /* ms */); } catch (Exception e) {}
+                try {
+                    thread.join(start + timeout_millis - now /* ms */);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
 
             synchronized (this) {
@@ -145,7 +149,11 @@ public final class S3Clients {
             long now = System.currentTimeMillis();
 
             if (start + timeout_millis > now) {
-                try { thread.join(start + timeout_millis - now /* ms */); } catch (Exception e) {}
+                try {
+                    thread.join(start + timeout_millis - now /* ms */);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
         }
 
@@ -306,4 +314,3 @@ public final class S3Clients {
         return PaskoochehApplication.isOuinetStarted();
     }
 }
-
