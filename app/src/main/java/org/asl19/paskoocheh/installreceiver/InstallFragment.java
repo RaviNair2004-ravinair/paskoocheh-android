@@ -54,6 +54,7 @@ import org.asl19.paskoocheh.utils.FileViewer;
 import org.parceler.Parcels;
 
 import java.io.File;
+import java.util.Locale;
 
 
 public abstract class InstallFragment extends Fragment {
@@ -390,10 +391,15 @@ public abstract class InstallFragment extends Fragment {
 
             // Get the version code for the apk that is installable in this device.
             if (version.devices != null) {
+                String buildDevice = Build.DEVICE == null ? "" : Build.DEVICE.toLowerCase(Locale.ROOT);
+                String buildHardware = Build.HARDWARE == null ? "" : Build.HARDWARE.toLowerCase(Locale.ROOT);
                 for (DeviceInfo device : version.devices) {
-                    if (device.deviceName.toLowerCase().equals(Build.DEVICE.toLowerCase()) || device.deviceName.toLowerCase().equals(Build.HARDWARE.toLowerCase())) {// TODO jay check if toLowerCase is needed since it is starting API level 29
-                        versionCode = device.versionCode;
-                        break;
+                    if (device != null && device.deviceName != null) {
+                        String deviceName = device.deviceName.toLowerCase(Locale.ROOT);
+                        if (deviceName.equals(buildDevice) || deviceName.equals(buildHardware)) {
+                            versionCode = device.versionCode;
+                            break;
+                        }
                     }
                 }
             }
@@ -409,7 +415,7 @@ public abstract class InstallFragment extends Fragment {
             }
 
             // If we couldn't find version_code for  this device or if version_code = 0 is absent, then use the root level downloadInfo.
-            if (version.downloadVia.s3 != null && !version.downloadVia.s3.isEmpty()) {
+            if (version.downloadVia != null && version.downloadVia.s3 != null && !version.downloadVia.s3.isEmpty()) {
                 isInstallableInThisDevice = true;
             }
         }
@@ -423,13 +429,10 @@ public abstract class InstallFragment extends Fragment {
     }
 
     protected boolean isGooglePlayStoreUrl(Version version) {
-        if (version == null || version.getDownloadVia().getUrl().isEmpty()) {
-            return false;
-        } else if(version.getDownloadVia().getUrl().contains("play.google")) {
-            return true;
-        } else {
+        if (version == null || version.getDownloadVia() == null || version.getDownloadVia().getUrl() == null || version.getDownloadVia().getUrl().isEmpty()) {
             return false;
         }
+        return version.getDownloadVia().getUrl().contains("play.google");
     }
 
     private void cancelInstallServiceNotification() {
